@@ -188,7 +188,7 @@ void emulationStep(Stack stack, Register flag, Register command, Register counte
     system("pause");
 }
 
-void CPU()
+int CPU()
 {
     Memory dataMemory;
     Memory instMemory;
@@ -262,7 +262,7 @@ void CPU()
         case 0b0111: // FST
             noStop = false;
             break;
-        case 0b1000: // SWP
+        case 0b1000: // SWAP
             stackRegisters.swap();
             break;
         case 0b1001: // ROR
@@ -298,10 +298,19 @@ void CPU()
         }
         pc.incrementBy(1);
     }
+    return stackRegisters.peek();
+}
+
+void parser()
+{
+
 }
 
 
 int main()
 {
-    CPU();
+    if (CPU() == 15)
+    {
+        std::cout << "Test passed";
+    }
 }
