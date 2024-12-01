@@ -47,11 +47,11 @@ public:
 
 class Stack
 {
-private:
+    
+public:
     Register stack[8];
     int n = 8;
     int top = -1;
-public:
     int readTop()
     {
         return top;
@@ -120,8 +120,75 @@ public:
     }
 };
 
+void emulationStep(Stack stack, Register flag, Register command, Register counter, Memory instMemory, Memory dataMemory)
+{
+    std::cout << "Stack: ";
+    for (int i = 0; i < 8; i++)
+    {
+        std::cout << stack.stack[i].getValue() << " ";
+        if (i == stack.readTop())
+        {
+            std::cout << "] ";
+        }
+    }
+    std::cout << std::endl << "Top at: " << stack.readTop();
+    std::cout << std::endl << "Flag: " << flag.getValue() << std::endl << "Command: ";
+    switch (command.getValue())
+    {
+    case 0b0000:
+        std::cout << "PUSH " << instMemory.read(counter.getValue() + 1);
+        break;
+    case 0b0001:
+        std::cout << "POP " << stack.peek();
+        break;
+    case 0b0010:
+        std::cout << "READ " << stack.peek() << " TO PUSH " << dataMemory.read(stack.peek());
+        break;
+    case 0b0011:
+        std::cout << "ADD " << stack.peek() << " AND " << stack.stack[stack.readTop() - 1].getValue();
+        break;
+    case 0b0100:
+        std::cout << "SUB " << stack.peek() << " AND " << stack.stack[stack.readTop() - 1].getValue();
+        break;
+    case 0b0101:
+        std::cout << "WRITE VALUE " << stack.stack[stack.readTop() - 1].getValue() << " TO ADDRESS " << stack.peek();
+        break;
+    case 0b0110:
+        std::cout << "LDC: JUMP TO INSTRUCTION " << stack.peek();
+        break;
+    case 0b0111:
+        std::cout << "FULL STOP";
+        break;
+    case 0b1000:
+        std::cout << "SWAP " << stack.peek() << " AND " << stack.stack[stack.readTop() - 1].getValue();
+        break;
+    case 0b1001:
+        std::cout << "ROR: ROTATE " << stack.peek() << ", " << stack.stack[stack.readTop() - 1].getValue() << " AND " << stack.stack[stack.readTop() - 2].getValue() << " TO THE RIGHT";
+        break;
+    case 0b1010:
+        std::cout << "ROL: ROTATE " << stack.peek() << ", " << stack.stack[stack.readTop() - 1].getValue() << " AND " << stack.stack[stack.readTop() - 2].getValue() << " TO THE LEFT";
+        break;
+    case 0b1011:
+        std::cout << "CMP " << stack.peek() << " AND " << stack.stack[stack.readTop() - 1].getValue();
+        break;
+    case 0b1100:
+        std::cout << "DUP " << stack.peek();
+        break;
+    case 0b1101:
+        std::cout << "JZ: JUMP IF ZERO FLAG POSITIVE";
+        break;
+    case 0b1110:
+        std::cout << "INC " << stack.peek() << " BY 1";
+        break;
+    case 0b1111:
+        std::cout << "OUT";
+        break;
+    }
+    std::cout << std::endl << "Counter: " << counter.getValue() << std::endl;
+    system("pause");
+}
 
-int main()
+void CPU()
 {
     Memory dataMemory;
     Memory instMemory;
@@ -167,7 +234,7 @@ int main()
     while (noStop)
     {
         comRegister.setValue(instMemory.read(pc.getValue()));
-
+        emulationStep(stackRegisters, flags, comRegister, pc, instMemory, dataMemory);
         switch (comRegister.getValue())
         {
         case 0b0000: // PUSH
@@ -226,9 +293,15 @@ int main()
             stackRegisters.increment(1);
             break;
         case 0b1111: // OUT
-            std::cout << stackRegisters.peek();
+            std::cout << "OUTPUT: " << stackRegisters.peek();
             break;
         }
         pc.incrementBy(1);
     }
+}
+
+
+int main()
+{
+    CPU();
 }
