@@ -342,6 +342,16 @@ std::map<std::string, int> mapping()
     return mapper;
 }
 
+inline bool isInteger(const std::string& s)
+{
+    if (s.empty() || ((!isdigit(s[0])) && (s[0] != '-') && (s[0] != '+'))) return false;
+
+    char* p;
+    strtol(s.c_str(), &p, 10);
+
+    return (*p == 0);
+}
+
 Memory parser()
 {
     std::ifstream f("input.txt");
@@ -350,21 +360,56 @@ Memory parser()
     mapper = mapping();
     int instrCnt = 0;
     bool numberWaiter = false;
+    int labelSetWaiter = 0;
+    std::map<std::string, int> labels;
+
     // String variable to store the read data
     std::string s;
     while (getline(f, s))
     {
-        if (numberWaiter == true)
+        std::string checkPush = s.substr(0, 4);
+        if (checkPush == "PUSH")
         {
-            instructions.write(instrCnt, std::stoi(s));
-            numberWaiter = false;
+            instrCnt++;
+        }
+        if (s.back() == ':')
+        {
+            s.pop_back();
+            labels[s] = instrCnt--;
+        }
+        instrCnt++;
+    }
+    f.clear();
+    f.seekg(0);
+    instrCnt = 0;
+    while (getline(f, s))
+    {
+        std::string checkPush = s.substr(0, 4);
+        if (checkPush == "PUSH")
+        {
+            instructions.write(instrCnt, 0b0000);
+            instrCnt++;
+            s.erase(0, 5);
+            if (isInteger(s) == true)
+            {
+                instructions.write(instrCnt, std::stoi(s));
+            }
+            else
+            {
+                instructions.write(instrCnt, labels[s]);
+            }
+        }
+        else if (s.back() == ':')
+        {
+            instrCnt--;
         }
         else
         {
-            instructions.write(instrCnt, mapper[s]);
-            if (mapper[s] == 0b0000) // PUSH OR JZ
-            {
-                numberWaiter = true;
+            if (mapper.find(s) == mapper.end()) {
+            // not found
+            }
+            else {
+                instructions.write(instrCnt, mapper[s]);
             }
         }
         instrCnt += 1;
