@@ -312,7 +312,7 @@ int CPU(Memory addedInstr, int mode)
             stackRegisters.increment(1);
             break;
         case 0b1111: // OUT
-            std::cout << "OUTPUT: " << stackRegisters.peek();
+            std::cout << "OUTPUT: " << stackRegisters.peek() << std::endl;
             break;
         }
         pc.incrementBy(1);
